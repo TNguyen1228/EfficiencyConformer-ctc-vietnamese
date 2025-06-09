@@ -2,7 +2,7 @@
 
 Hệ thống nhận dạng giọng nói tiếng Việt hiệu suất cao dựa trên CTC (Connectionist Temporal Classification) với PhoWhisper encoder.
 
-## 🇻🇳 Tổng Quan Dự Án
+## Tổng Quan Dự Án
 
 Model này được thiết kế đặc biệt để nhận dạng giọng nói tiếng Việt với hiệu suất vượt trội so với Whisper gốc của OpenAI. Sử dụng kiến trúc CTC thay vì autoregressive decoder, model đạt được tốc độ inference nhanh hơn 3-5 lần và độ chính xác cao hơn cho tiếng Việt.
 
@@ -32,10 +32,6 @@ Model này được thiết kế đặc biệt để nhận dạng giọng nói 
 
 ### 🎵 Xử Lý Audio Thông Minh
 - **Flexible Length**: Không giới hạn độ dài audio
-- **Adaptive Augmentation**: 
-  - Audio ngắn (< 3s): Augmentation nhẹ
-  - Audio trung (3-8s): Augmentation vừa
-  - Audio dài (> 8s): Augmentation mạnh
 - **Real-world Noise**: Inject tiếng ồn thực tế
 
 ## 📊 Chuẩn Bị Dữ Liệu
@@ -88,7 +84,7 @@ path|text
 ### 🛠️ Cài Đặt Dependencies
 ```bash
 # Clone repository
-git clone https://github.com/your-username/vietnamese-ctc-whisper
+git clone https://github.com/iamdinhthuan/vietnamese-ctc-whispe
 cd vietnamese-ctc-whisper
 
 # Cài đặt dependencies
@@ -102,7 +98,6 @@ pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https
 ```bash
 
 wget https://huggingface.co/dinhthuan/phowhisper_small_encoder/resolve/main/phowhisper_small_encoder.pt -O weights/phowhisper_small_encoder.pt
-
 
 ```
 
@@ -352,8 +347,7 @@ MIT License - Xem file LICENSE để biết chi tiết.
 ## 📞 Liên Hệ
 
 - **GitHub Issues**: Báo bugs và feature requests
-- **Email**: [your-email@example.com]
-- **Discord**: [Discord server link]
+- **Email**: bpyphuthien115@gmail.com
 
 ## 🙏 Acknowledgments
 
