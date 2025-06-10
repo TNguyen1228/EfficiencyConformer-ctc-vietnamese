@@ -9,6 +9,7 @@ Model này được thiết kế đặc biệt để nhận dạng giọng nói 
 ## ⚡ Những Khác Biệt Chính So Với Whisper Gốc
 
 ### 🏗️ Kiến Trúc Model
+
 | Thành Phần | Whisper Gốc | Model Này | Lợi Ích |
 |------------|-------------|-----------|---------|
 | **Decoder** | Autoregressive Transformer | CTC Decoder | ⚡ Nhanh hơn 3-5x |
@@ -16,28 +17,34 @@ Model này được thiết kế đặc biệt để nhận dạng giọng nói 
 | **Stability** | Error propagation | Independent prediction | 🎯 Ổn định hơn |
 
 ### 🧠 Encoder Cải Tiến
+
 - **PhoWhisper Encoder**: Được pre-train đặc biệt cho tiếng Việt
 - **ALiBi Attention**: Xử lý audio dài tốt hơn, hỗ trợ streaming
 - **Optimized Context**: Không bị giới hạn 30 giây như Whisper gốc
 
 ### 🎯 CTC Decoder Thông Minh
+
 - **Prefix Beam Search**: Chính xác hơn standard beam search
 - **Label Smoothing**: Giảm overfitting, cải thiện generalization
 - **Length Normalization**: Cân bằng giữa độ dài và chất lượng
 
 ### 📝 Tokenizer Chuyên Biệt
+
 - **SentencePiece BPE**: 1024 vocab size tối ưu cho tiếng Việt
 - **Subword Handling**: Xử lý từ ghép và từ mới tiếng Việt hiệu quả
 - **Compact Vocabulary**: Nhỏ gọn nhưng hiệu quả hơn tokenizer đa ngôn ngữ
 
 ### 🎵 Xử Lý Audio Thông Minh
+
 - **Flexible Length**: Không giới hạn độ dài audio
 - **Real-world Noise**: Inject tiếng ồn thực tế
 
 ## 📊 Chuẩn Bị Dữ Liệu
 
 ### 📁 Cấu Trúc Thư Mục
-```
+
+```text
+
 whisper_asr/
 ├── metadata.csv              # File metadata chính
 ├── datatest/                 # Thư mục chứa file audio
@@ -51,6 +58,7 @@ whisper_asr/
 ```
 
 ### 📝 Format Dữ Liệu
+
 Model sử dụng **một file CSV duy nhất** với format đơn giản:
 
 ```csv
@@ -61,12 +69,14 @@ path|text
 ```
 
 ### 🔧 Tính Năng Dữ Liệu
+
 - **Auto Train/Val Split**: Tự động chia 95% train, 5% validation
 - **Text-only Filtering**: Lọc theo độ dài text (1-60 ký tự)
 - **No Duration Limit**: Không giới hạn độ dài audio
 - **Reproducible Split**: Sử dụng random seed để đảm bảo kết quả nhất quán
 
 ### 📋 Yêu Cầu Dữ Liệu
+
 - **Audio Format**: WAV, MP3, FLAC (khuyến nghị WAV 16kHz)
 - **Text Quality**: Chú ý dấu câu và chính tả tiếng Việt
 - **File Size**: Không giới hạn (model xử lý được audio dài)
@@ -75,6 +85,7 @@ path|text
 ## ⚙️ Cài Đặt
 
 ### 📦 Yêu Cầu Hệ Thống
+
 - Python 3.10+
 - PyTorch 2.0+
 - CUDA 11.8+ (khuyến nghị)
@@ -82,6 +93,7 @@ path|text
 - GPU: 6GB+ VRAM
 
 ### 🛠️ Cài Đặt Dependencies
+
 ```bash
 # Clone repository
 git clone https://github.com/iamdinhthuan/vietnamese-ctc-whispe
@@ -95,15 +107,15 @@ pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https
 ```
 
 ### 📥 Download Model Weights
+
 ```bash
-
 wget https://huggingface.co/dinhthuan/phowhisper_small_encoder/resolve/main/phowhisper_small_encoder.pt -O weights/phowhisper_small_encoder.pt
-
 ```
 
 ## 🚀 Sử Dụng
 
 ### 1️⃣ Training Cơ Bản
+
 ```bash
 # Train với config mặc định
 python run.py
@@ -116,6 +128,7 @@ python run.py --batch-size 16 --learning-rate 2e-4 --max-epochs 30
 ```
 
 ### 2️⃣ Config Tùy Chỉnh
+
 ```python
 from config import get_config
 
@@ -135,6 +148,7 @@ config.save("my_config.json")
 ```
 
 ### 3️⃣ Inference
+
 ```bash
 # Inference cơ bản
 python inference.py --checkpoint checkpoints/best.ckpt --audio audio.wav
@@ -149,6 +163,7 @@ python inference.py --checkpoint checkpoints/best.ckpt --audio_dir audio_folder/
 ## ⚙️ Cấu Hình Chi Tiết
 
 ### 🎵 Audio Processing
+
 ```json
 {
   "audio": {
@@ -161,6 +176,7 @@ python inference.py --checkpoint checkpoints/best.ckpt --audio_dir audio_folder/
 ```
 
 ### 🧠 Model Architecture
+
 ```json
 {
   "model": {
@@ -175,6 +191,7 @@ python inference.py --checkpoint checkpoints/best.ckpt --audio_dir audio_folder/
 ```
 
 ### 🏋️ Training Parameters
+
 ```json
 {
   "training": {
@@ -189,6 +206,7 @@ python inference.py --checkpoint checkpoints/best.ckpt --audio_dir audio_folder/
 ```
 
 ### 📊 Data Configuration
+
 ```json
 {
   "data": {
@@ -206,6 +224,7 @@ python inference.py --checkpoint checkpoints/best.ckpt --audio_dir audio_folder/
 ## 📈 Tips Training Hiệu Quả
 
 ### 🚀 Cho Thí Nghiệm Nhanh
+
 ```python
 config.model.n_state = 512        # Model nhỏ hơn
 config.model.n_layer = 6          # Ít layers hơn
@@ -214,6 +233,7 @@ config.training.max_epochs = 10    # Training ngắn
 ```
 
 ### 🎯 Cho Chất Lượng Cao
+
 ```python
 config.model.n_state = 768        # Model đầy đủ
 config.training.batch_size = 32    # Batch lớn
@@ -222,6 +242,7 @@ config.data.augmentation_prob = 0.9  # Augmentation nhiều
 ```
 
 ### 🏭 Cho Production
+
 ```python
 config.training.precision = "bf16-mixed"     // Mixed precision
 config.training.accumulate_grad_batches = 2  // Gradient accumulation
@@ -231,6 +252,7 @@ config.training.num_workers = 8              // Parallel data loading
 ## 📊 Monitoring Training
 
 ### 📈 TensorBoard
+
 ```bash
 # Khởi động TensorBoard
 tensorboard --logdir checkpoints
@@ -239,6 +261,7 @@ tensorboard --logdir checkpoints
 ```
 
 ### 🔍 Metrics Quan Trọng
+
 - **Training Loss**: Giảm đều theo epochs
 - **Validation WER**: Word Error Rate (càng thấp càng tốt)
 - **Learning Rate**: Theo OneCycle schedule
@@ -247,6 +270,7 @@ tensorboard --logdir checkpoints
 ## 🎯 Strategies Inference
 
 ### ⚡ Greedy Decoding
+
 ```python
 # Nhanh nhất, chất lượng tốt
 inference = CTCInference(checkpoint_path, config)
@@ -254,6 +278,7 @@ result = inference.transcribe_single(audio_path, use_beam_search=False)
 ```
 
 ### 🎯 Prefix Beam Search
+
 ```python
 # Chậm hơn nhưng chính xác nhất
 result = inference.transcribe_single(
@@ -267,6 +292,7 @@ result = inference.transcribe_single(
 ## 🐛 Troubleshooting
 
 ### ❌ Memory Issues
+
 ```python
 # Giảm batch size
 config.training.batch_size = 8
@@ -279,6 +305,7 @@ config.data.enable_caching = False
 ```
 
 ### 🐌 Training Chậm
+
 ```python
 # Sử dụng mixed precision
 config.training.precision = "bf16-mixed"
@@ -291,6 +318,7 @@ config.training.num_workers = 0
 ```
 
 ### 💥 NaN Loss
+
 ```python
 # Giảm learning rate
 config.training.learning_rate = 5e-5
@@ -304,6 +332,7 @@ config.training.gradient_clip_val = 0.5
 ## 📚 Examples Thực Tế
 
 ### 🎙️ Training với Medical Data
+
 ```python
 # Config cho y tế
 config = get_config()
@@ -314,6 +343,7 @@ config.save("medical_config.json")
 ```
 
 ### 📞 Training với Call Center Data
+
 ```python
 # Config cho call center
 config.data.bg_noise_path = ["./noise/call_center/"]
@@ -325,16 +355,19 @@ config.save("callcenter_config.json")
 ## 🤝 Đóng Góp
 
 ### 📝 Báo Lỗi
+
 - Mở issue trên GitHub với thông tin chi tiết
 - Bao gồm config, logs và error message
 - Mô tả steps để reproduce
 
 ### 💡 Đề Xuất Tính Năng
+
 - Mô tả rõ use case và lợi ích
 - Đưa ra implementation approach nếu có thể
 - Thảo luận trong Discussions trước khi code
 
 ### 🔧 Pull Requests
+
 - Fork repo và tạo feature branch
 - Viết tests cho code mới
 - Đảm bảo code style consistency
@@ -347,7 +380,7 @@ MIT License - Xem file LICENSE để biết chi tiết.
 ## 📞 Liên Hệ
 
 - **GitHub Issues**: Báo bugs và feature requests
-- **Email**: bpyphuthien115@gmail.com
+- **Email**: <bpyphuthien115@gmail.com>
 
 ## 🙏 Acknowledgments
 
@@ -359,4 +392,3 @@ MIT License - Xem file LICENSE để biết chi tiết.
 ---
 
 ⭐ **Nếu project này hữu ích, hãy star repo để ủng hộ nhé!** ⭐
-

@@ -42,6 +42,6 @@ numba>=0.58.0
 warprnnt-numba>=0.4.1
 
 # Optional: for advanced features
-# transformers>=4.30.0  # For language model integration
+transformers>=4.30.0  # For BartPho tokenizer extraction
 # onnxruntime>=1.15.0   # For model optimization
 # triton>=2.0.0         # For custom kernels 
