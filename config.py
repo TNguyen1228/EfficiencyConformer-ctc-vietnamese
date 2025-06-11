@@ -68,6 +68,9 @@ class TrainingConfig:
     checkpoint_every_n_steps: int = 1000  # save checkpoints every N training steps
     save_epoch_checkpoint: bool = False   # additionally save checkpoint each epoch end
 
+    # Multi-task learning
+    aux_loss_weight: float = 0.2  # weight of auxiliary CTC loss (0 disables)
+
 
 @dataclass
 class DataConfig:

@@ -40,7 +40,7 @@
     "enable_progress_bar": true
   },
   "data": {
-    "metadata_file": "D:/train_model/whisper_asr/metadata.csv",
+    "metadata_file": "metadata.csv",
     "train_val_split": 0.95,
     "bg_noise_path": ["./datatest/noise/fsdnoisy18k"],
     "min_text_len": 1,

@@ -14,7 +14,7 @@ import json
 from tqdm import tqdm
 
 # Import model components
-from models.encoder import AudioEncoder
+from models.conformer import ConformerEncoder
 from models.advanced_ctc import AdvancedCTCHead, AdvancedCTCDecoder
 from config import (
     ExperimentConfig, 
@@ -76,13 +76,13 @@ class CTCInference:
         """Load model from checkpoint"""
         logger.info(f"📦 Loading model from {checkpoint_path}")
         
-        # Initialize model components
-        self.encoder = AudioEncoder(
+        # Initialize model components (Conformer must match training)
+        self.encoder = ConformerEncoder(
             n_mels=self.config.audio.n_mels,
-            n_state=self.config.model.n_state,
-            n_head=self.config.model.n_head,
-            n_layer=self.config.model.n_layer,
-            att_context_size=self.config.model.attention_context_size
+            d_model=self.config.model.n_state,
+            n_heads=self.config.model.n_head,
+            n_layers=self.config.model.n_layer,
+            dropout=0.0,
         )
         
         # Use vocab_size directly from config (it already includes the blank token)
@@ -158,7 +158,7 @@ class CTCInference:
                 x_len = torch.tensor([x.shape[2]]).to(self.device)
                 
                 # Forward pass
-                enc_out, enc_len = self.encoder(x, x_len)
+                enc_out, enc_len, _ = self.encoder(x, x_len, return_intermediate=False)
                 logits = self.ctc_head(enc_out)
                 log_probs = F.log_softmax(logits, dim=-1)
                 

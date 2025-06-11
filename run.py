@@ -3,6 +3,8 @@
 Improved version of run.py with all enhancements
 Use this instead of the original run.py for better performance and features
 """
+import warnings
+warnings.filterwarnings("ignore")
 
 import argparse
 import torch

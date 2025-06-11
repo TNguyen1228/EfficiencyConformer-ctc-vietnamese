@@ -14,7 +14,7 @@ import wandb
 from typing import Optional, Dict, Any
 import time
 
-from models.encoder import AudioEncoder
+from models.conformer import ConformerEncoder
 from models.advanced_ctc import AdvancedCTCHead, AdvancedCTCDecoder, CTCLossWithLabelSmoothing
 
 # All parameters now come from config
@@ -66,37 +66,16 @@ class StreamingCTC(pl.LightningModule):
         self.step_start_time = None
         
     def _init_encoder(self):
-        """Initialize encoder with pretrained weights"""
-        encoder_state_dict = torch.load(
-            self.config.paths.pretrained_encoder_weight,
-            map_location="cuda" if torch.cuda.is_available() else "cpu",
-            weights_only=True
-        )
-        
-        # Handle conv3 layer
-        if 'model_state_dict' in encoder_state_dict:
-            state_dict = encoder_state_dict['model_state_dict']
-            if 'conv3.weight' not in state_dict:
-                state_dict['conv3.weight'] = state_dict['conv2.weight'].clone()
-                state_dict['conv3.bias'] = state_dict['conv2.bias'].clone()
-        else:
-            state_dict = encoder_state_dict
-            
-        self.encoder = AudioEncoder(
+        """Initialize Conformer encoder – pretrained weights are ignored for architectural mismatch"""
+        self.encoder = ConformerEncoder(
             n_mels=self.config.audio.n_mels,
-            n_state=self.config.model.n_state,
-            n_head=self.config.model.n_head,
-            n_layer=self.config.model.n_layer,
-            att_context_size=self.config.model.attention_context_size
+            d_model=self.config.model.n_state,
+            n_heads=self.config.model.n_head,
+            n_layers=self.config.model.n_layer,
+            dropout=self.config.model.dropout,
         )
+        logger.info("🏗️ Conformer encoder initialized")
         
-        # Load with better error handling
-        try:
-            self.encoder.load_state_dict(state_dict, strict=False)
-            logger.info("✅ Encoder weights loaded successfully")
-        except Exception as e:
-            logger.warning(f"⚠️ Partial encoder loading: {e}")
-            
     def _init_ctc_components(self, dropout: float, label_smoothing: float):
         """Initialize CTC head, decoder and loss"""
         self.ctc_head = AdvancedCTCHead(self.config.model.n_state, self.config.model.vocab_size, dropout)
@@ -110,16 +89,18 @@ class StreamingCTC(pl.LightningModule):
         """Initialize tokenizer"""
         self.tokenizer = spm.SentencePieceProcessor(model_file=self.config.model.tokenizer_model_path)
         
-    def forward(self, x: torch.Tensor, x_len: torch.Tensor) -> torch.Tensor:
-        """Forward pass"""
-        enc_out, enc_len = self.encoder(x, x_len)
+    def forward(self, x: torch.Tensor, x_len: torch.Tensor, return_intermediate: bool = False):
+        """Forward pass returning logits (and optional intermediates)"""
+        enc_out, enc_len, intermediates = self.encoder(x, x_len, return_intermediate=return_intermediate)
         logits = self.ctc_head(enc_out)
+        if return_intermediate:
+            return logits, enc_len, intermediates
         return logits, enc_len
         
     def advanced_decoding(self, x: torch.Tensor, x_len: torch.Tensor, use_beam_search: bool = False) -> list:
         """Advanced decoding with multiple strategies"""
         with torch.no_grad():
-            logits, enc_len = self.forward(x, x_len)
+            logits, enc_len = self.forward(x, x_len, return_intermediate=False)
             log_probs = F.log_softmax(logits, dim=-1)
             
             if use_beam_search:
@@ -166,13 +147,24 @@ class StreamingCTC(pl.LightningModule):
         x, x_len, y, y_len = batch
         
         # Forward pass
-        logits, enc_len = self.forward(x, x_len)
+        logits, enc_len, intermediates = self.forward(x, x_len, return_intermediate=True)
         log_probs = F.log_softmax(logits, dim=-1)
         
         # CTC loss (T, B, V+1) format required
         log_probs_ctc = log_probs.transpose(0, 1)
         
-        loss = self.ctc_loss_fn(log_probs_ctc, y, enc_len, y_len)
+        main_loss = self.ctc_loss_fn(log_probs_ctc, y, enc_len, y_len)
+        
+        # Auxiliary CTC loss from intermediate representations
+        aux_losses = []
+        for inter in intermediates:
+            aux_logits = self.ctc_head(inter)  # reuse head weights
+            aux_log_probs = F.log_softmax(aux_logits, dim=-1).transpose(0, 1)
+            aux_losses.append(self.ctc_loss_fn(aux_log_probs, y, enc_len, y_len))
+
+        aux_loss = torch.stack(aux_losses).mean() if aux_losses else torch.tensor(0.0, device=self.device)
+
+        loss = main_loss + self.config.training.aux_loss_weight * aux_loss
         
         # Periodic evaluation and logging
         if batch_idx % 2000 == 0:
@@ -190,7 +182,9 @@ class StreamingCTC(pl.LightningModule):
             self.log("train_wer", train_wer, prog_bar=True, on_step=True, on_epoch=False)
             
         # Always log loss and learning rate
-        self.log("train_loss", loss, prog_bar=True, on_step=True, on_epoch=False)
+        self.log("train_loss", main_loss, prog_bar=True, on_step=True, on_epoch=False)
+        if aux_losses:
+            self.log("aux_loss", aux_loss, prog_bar=False, on_step=True, on_epoch=False)
         self.log("learning_rate", self.trainer.optimizers[0].param_groups[0]['lr'], on_step=True, on_epoch=False)
         
         # Log training speed
@@ -206,7 +200,7 @@ class StreamingCTC(pl.LightningModule):
         x, x_len, y, y_len = batch
         
         # Compute validation loss
-        logits, enc_len = self.forward(x, x_len)
+        logits, enc_len = self.forward(x, x_len, return_intermediate=False)
         log_probs = F.log_softmax(logits, dim=-1)
         log_probs_ctc = log_probs.transpose(0, 1)
         
