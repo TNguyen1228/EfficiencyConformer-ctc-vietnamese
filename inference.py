@@ -85,6 +85,7 @@ class CTCInference:
                 n_heads=self.config.model.n_head,
                 n_layers=self.config.model.n_layer,
                 dropout=0.0,
+                ffn_expansion=self.config.model.ffn_expansion,
             )
         else:
             self.encoder = ConformerEncoder(
@@ -93,6 +94,7 @@ class CTCInference:
                 n_heads=self.config.model.n_head,
                 n_layers=self.config.model.n_layer,
                 dropout=0.0,
+                ffn_expansion=self.config.model.ffn_expansion,
             )
         
         # Use vocab_size directly from config (it already includes the blank token)

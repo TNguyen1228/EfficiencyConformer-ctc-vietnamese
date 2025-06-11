@@ -33,6 +33,7 @@ class EfficientConformerEncoder(nn.Module):
         n_layers: int,
         conv_kernel: int = 31,
         dropout: float = 0.1,
+        ffn_expansion: int = 4,
     ) -> None:
         super().__init__()
         # 2-layer conv2d front-end identical to previous encoder
@@ -46,10 +47,11 @@ class EfficientConformerEncoder(nn.Module):
         # Positional encoding learnable
         self.pos_encoding = nn.Parameter(torch.randn(1, 10000, d_model) * 0.01)
 
+        ffn_dim = d_model * ffn_expansion
         self.conformer = TAConformer(
             input_dim=d_model,
             num_heads=n_heads,
-            ffn_dim=d_model * 4,
+            ffn_dim=ffn_dim,
             num_layers=n_layers,
             depthwise_conv_kernel_size=conv_kernel,
             dropout=dropout,

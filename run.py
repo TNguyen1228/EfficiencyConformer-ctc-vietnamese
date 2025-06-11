@@ -252,8 +252,12 @@ def main():
         
         # Save final model
         final_model_path = Path(config.paths.checkpoint_dir) / "final_model.ckpt"
-        trainer.save_checkpoint(final_model_path)
+        trainer.save_checkpoint(final_model_path, weights_only=True)
         logger.info(f"💾 Final model saved to {final_model_path}")
+        
+        # additionally save fp16 version (~50% size)
+        half_state = {k: v.half() for k, v in model.state_dict().items()}
+        torch.save(half_state, Path(config.paths.checkpoint_dir) / "final_model_fp16.ckpt")
         
     except KeyboardInterrupt:
         logger.info("⏹️ Training interrupted by user")

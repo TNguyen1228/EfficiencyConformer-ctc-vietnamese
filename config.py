@@ -18,9 +18,9 @@ class AudioConfig:
 class ModelConfig:
     """Model architecture configuration"""
     # Encoder config
-    n_state: int = 768
-    n_head: int = 12
-    n_layer: int = 12
+    n_state: int = 256  # smaller for efficiency
+    n_head: int = 4
+    n_layer: int = 16
     attention_context_size: Tuple[int, int] = (40, 2)
     
     # Tokenizer config
@@ -39,6 +39,9 @@ class ModelConfig:
 
     # Encoder variant: "conformer" (default) or "efficient"
     encoder_type: str = "conformer"
+
+    # FFN hidden dim = n_state * ffn_expansion
+    ffn_expansion: int = 4
 
 
 @dataclass

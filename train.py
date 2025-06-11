@@ -75,6 +75,7 @@ class StreamingCTC(pl.LightningModule):
                 n_heads=self.config.model.n_head,
                 n_layers=self.config.model.n_layer,
                 dropout=self.config.model.dropout,
+                ffn_expansion=self.config.model.ffn_expansion,
             )
             logger.info("🏗️ Efficient Conformer encoder initialized")
         else:
@@ -290,8 +291,16 @@ class StreamingCTC(pl.LightningModule):
 
         if hasattr(self.trainer, 'checkpoint_callback'):
             checkpoint_path = f"{self.config.paths.checkpoint_dir}/ctc_epoch_{self.current_epoch}.ckpt"
-            self.trainer.save_checkpoint(checkpoint_path)
+            self.trainer.save_checkpoint(checkpoint_path, weights_only=True)
             logger.info(f"💾 Epoch checkpoint saved: {checkpoint_path}")
+
+    def on_train_end(self):
+        """Save fp16 weights for efficient storage"""
+        from pathlib import Path
+        fp16_path = Path(self.config.paths.checkpoint_dir) / "final_model_fp16.ckpt"
+        half_state = {k: v.half() for k, v in self.state_dict().items()}
+        torch.save(half_state, fp16_path)
+        logger.info(f"💾 FP16 weights saved to {fp16_path}")
 
 
 def create_advanced_callbacks(config):
@@ -305,7 +314,7 @@ def create_advanced_callbacks(config):
         filename='ctc-step{step}-wer{val_wer_epoch:.4f}',
         save_top_k=1,            # keep only the best model (lowest WER)
         mode='min',
-        save_weights_only=False,
+        save_weights_only=True,
         every_n_train_steps=config.training.checkpoint_every_n_steps,
         save_on_train_epoch_end=False,   # rely on step-based saving only
         save_last=False
