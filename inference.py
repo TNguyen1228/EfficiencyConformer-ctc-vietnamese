@@ -15,6 +15,7 @@ from tqdm import tqdm
 
 # Import model components
 from models.conformer import ConformerEncoder
+from models.efficient_conformer import EfficientConformerEncoder
 from models.advanced_ctc import AdvancedCTCHead, AdvancedCTCDecoder
 from config import (
     ExperimentConfig, 
@@ -76,14 +77,23 @@ class CTCInference:
         """Load model from checkpoint"""
         logger.info(f"📦 Loading model from {checkpoint_path}")
         
-        # Initialize model components (Conformer must match training)
-        self.encoder = ConformerEncoder(
-            n_mels=self.config.audio.n_mels,
-            d_model=self.config.model.n_state,
-            n_heads=self.config.model.n_head,
-            n_layers=self.config.model.n_layer,
-            dropout=0.0,
-        )
+        # Initialize model components depending on encoder_type
+        if self.config.model.encoder_type == "efficient":
+            self.encoder = EfficientConformerEncoder(
+                n_mels=self.config.audio.n_mels,
+                d_model=self.config.model.n_state,
+                n_heads=self.config.model.n_head,
+                n_layers=self.config.model.n_layer,
+                dropout=0.0,
+            )
+        else:
+            self.encoder = ConformerEncoder(
+                n_mels=self.config.audio.n_mels,
+                d_model=self.config.model.n_state,
+                n_heads=self.config.model.n_head,
+                n_layers=self.config.model.n_layer,
+                dropout=0.0,
+            )
         
         # Use vocab_size directly from config (it already includes the blank token)
         self.ctc_head = AdvancedCTCHead(

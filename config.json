@@ -20,7 +20,8 @@
     "pad": 1,
     "dropout": 0.2,
     "label_smoothing": 0.15,
-    "use_layer_norm": true
+    "use_layer_norm": true,
+    "encoder_type": "efficient"
   },
   "training": {
     "batch_size": 16,

@@ -15,6 +15,7 @@ from typing import Optional, Dict, Any
 import time
 
 from models.conformer import ConformerEncoder
+from models.efficient_conformer import EfficientConformerEncoder
 from models.advanced_ctc import AdvancedCTCHead, AdvancedCTCDecoder, CTCLossWithLabelSmoothing
 
 # All parameters now come from config
@@ -67,14 +68,23 @@ class StreamingCTC(pl.LightningModule):
         
     def _init_encoder(self):
         """Initialize Conformer encoder – pretrained weights are ignored for architectural mismatch"""
-        self.encoder = ConformerEncoder(
-            n_mels=self.config.audio.n_mels,
-            d_model=self.config.model.n_state,
-            n_heads=self.config.model.n_head,
-            n_layers=self.config.model.n_layer,
-            dropout=self.config.model.dropout,
-        )
-        logger.info("🏗️ Conformer encoder initialized")
+        if self.config.model.encoder_type == "efficient":
+            self.encoder = EfficientConformerEncoder(
+                n_mels=self.config.audio.n_mels,
+                d_model=self.config.model.n_state,
+                n_heads=self.config.model.n_head,
+                n_layers=self.config.model.n_layer,
+                dropout=self.config.model.dropout,
+            )
+            logger.info("🏗️ Efficient Conformer encoder initialized")
+        else:
+            self.encoder = ConformerEncoder(
+                n_mels=self.config.audio.n_mels,
+                d_model=self.config.model.n_state,
+                n_heads=self.config.model.n_head,
+                n_layers=self.config.model.n_layer,
+                dropout=self.config.model.dropout,
+            )
         
     def _init_ctc_components(self, dropout: float, label_smoothing: float):
         """Initialize CTC head, decoder and loss"""

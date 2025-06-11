@@ -37,6 +37,9 @@ class ModelConfig:
     label_smoothing: float = 0.1
     use_layer_norm: bool = True
 
+    # Encoder variant: "conformer" (default) or "efficient"
+    encoder_type: str = "conformer"
+
 
 @dataclass
 class TrainingConfig:
