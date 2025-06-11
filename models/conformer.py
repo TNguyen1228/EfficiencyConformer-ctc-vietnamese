@@ -152,7 +152,21 @@ class ConformerEncoder(nn.Module):
             nn.ReLU(),
         )
 
+        # compute frequency dimension after two stride-2 convs on frequency axis
+        def _freq_after_subsample(n_freq: int) -> int:
+            # conv formula with k=3, p=1, s=2 applied twice
+            out = (n_freq - 1) // 2 + 1
+            out = (out - 1) // 2 + 1
+            return out
+
+        freq_after = _freq_after_subsample(n_mels)
+
         self.pos_encoding = nn.Parameter(torch.randn(1, 10000, d_model) * 0.01)
+
+        # If freq_after > 1 we need a linear projection from d_model*freq_after -> d_model
+        self.proj = None
+        if freq_after > 1:
+            self.proj = nn.Linear(d_model * freq_after, d_model)
 
         self.layers = nn.ModuleList(
             [
@@ -189,14 +203,6 @@ class ConformerEncoder(nn.Module):
         B, D, F, TT = x.size()
         x = x.permute(0, 3, 1, 2).contiguous().view(B, TT, D * F)  # (B, T', D*F)
 
-        # Project to d_model if F != 1 (in our case F still n_mels/4). Use Linear.
-        if F != 1:
-            proj = getattr(self, "_proj", None)
-            if proj is None:
-                self._proj = nn.Linear(D * F, D)
-                proj = self._proj
-            x = proj(x)
-
         # positional encoding (simple learned) – slice to needed length
         pos_enc = self.pos_encoding[:, : x.size(1), :]
         x = x + pos_enc
@@ -211,4 +217,9 @@ class ConformerEncoder(nn.Module):
 
         x = self.norm_out(x)
         enc_len = self.get_length_after_subsample(x_len)
+
+        # Project to d_model if needed
+        if self.proj is not None:
+            x = self.proj(x)
+
         return x, enc_len, intermediates 
