@@ -203,6 +203,10 @@ class ConformerEncoder(nn.Module):
         B, D, F, TT = x.size()
         x = x.permute(0, 3, 1, 2).contiguous().view(B, TT, D * F)  # (B, T', D*F)
 
+        # Project to d_model if needed
+        if self.proj is not None:
+            x = self.proj(x)
+
         # positional encoding (simple learned) – slice to needed length
         pos_enc = self.pos_encoding[:, : x.size(1), :]
         x = x + pos_enc
@@ -217,9 +221,5 @@ class ConformerEncoder(nn.Module):
 
         x = self.norm_out(x)
         enc_len = self.get_length_after_subsample(x_len)
-
-        # Project to d_model if needed
-        if self.proj is not None:
-            x = self.proj(x)
 
         return x, enc_len, intermediates 
