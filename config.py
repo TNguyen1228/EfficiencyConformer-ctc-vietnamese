@@ -74,6 +74,9 @@ class TrainingConfig:
     # Multi-task learning
     aux_loss_weight: float = 0.2  # weight of auxiliary CTC loss (0 disables)
 
+    # Validation frequency
+    val_check_interval: int = 1000  # validate every N training steps
+
 
 @dataclass
 class DataConfig:

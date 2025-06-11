@@ -108,7 +108,10 @@ class EfficientConformerEncoder(nn.Module):
         new_len = self.get_length_after_subsample(x_len)
 
         # Build mask
-        padding_mask = self._lengths_to_padding_mask(new_len)
+        seq_len = x.size(1)
+        padding_mask = (
+            torch.arange(seq_len, device=new_len.device).expand(x.size(0), seq_len) >= new_len.unsqueeze(1)
+        )
 
         intermediates: List[Tensor] = []
         if return_intermediate:
