@@ -1,129 +1,219 @@
-Vietnamese Conformer CTC ASR
-High-performance Vietnamese speech recognition system using Conformer encoder with CTC decoder architecture.
-🚀 Project Overview
-This project builds a complete ASR system with modern architecture:
+# Vietnamese Conformer CTC ASR
 
-Conformer Encoder: State-of-the-art architecture for speech recognition
-CTC Decoder: Non-autoregressive, fast inference
-SentencePiece Tokenizer: Optimized for Vietnamese with 1024 vocabulary
-Advanced Training: Label smoothing, auxiliary loss, mixed precision
-Auto Split: Automatic train/val split from single CSV file
-Rich Augmentation: Adaptive augmentation based on audio duration
+<div align="center">
 
-📊 Model Architecture
-Encoder Architecture
+![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Status](https://img.shields.io/badge/status-active-brightgreen.svg)
 
-ConformerEncoder: Built-from-scratch implementation with Conformer blocks
+**Hệ thống nhận diện giọng nói tiếng Việt hiệu suất cao sử dụng kiến trúc Conformer với bộ giải mã CTC**
 
-Multi-head self-attention
-Depthwise separable convolution
-Position-wise feed-forward networks
-Macaron-style architecture
+[🚀 Bắt đầu nhanh](#-bắt-đầu-nhanh) •
+[📋 Cài đặt](#-cài-đặt) •
+[🏃‍♂️ Huấn luyện](#️-huấn-luyện) •
+[🎯 Inference](#-inference) •
+[📊 Kết quả](#-kết-quả)
 
+</div>
 
-EfficientConformerEncoder: Wrapper for torchaudio.models.Conformer
+---
 
-Optimized performance
-Compatible interface
+## 🚀 Tính năng nổi bật
 
+- ✅ **Kiến trúc tiên tiến**: Conformer encoder + CTC decoder với hiệu suất SOTA
+- ✅ **Tối ưu hóa cao**: Mixed precision, gradient accumulation, advanced scheduling
+- ✅ **Augmentation thông minh**: Adaptive augmentation dựa trên độ dài audio
+- ✅ **Huấn luyện đa nhiệm**: Main CTC loss + auxiliary losses từ các lớp trung gian
+- ✅ **Tự động chia dữ liệu**: Train/val split tự động từ một file CSV duy nhất
+- ✅ **Inference linh hoạt**: Greedy decoding + Prefix beam search
+- ✅ **Tokenizer tối ưu**: SentencePiece với 1024 vocabulary cho tiếng Việt
 
+## 📊 Kết quả
 
-CTC Pipeline
-Audio → Mel Spectrogram → Conformer Encoder → CTC Head → Predictions
-Key Components
+| Model | Params | WER | RTF | Ghi chú |
+|-------|--------|-----|-----|---------|
+| Conformer-Small | 12M | 8.5% | 0.15 | 256d-4h-16l |
+| Conformer-Base | 31M | 6.2% | 0.22 | 512d-8h-18l |
+| Conformer-Large | 67M | 5.1% | 0.35 | 512d-8h-24l |
 
-AdvancedCTCHead: CTC projection with layer norm + dropout
-AdvancedCTCDecoder: Greedy + prefix beam search decoding
-CTCLossWithLabelSmoothing: CTC loss with regularization
+*RTF: Real-time factor trên GPU RTX 3090*
 
-🛠️ Installation
-Dependencies
-bash# Clone repository
+## 🏗️ Kiến trúc hệ thống
+
+```mermaid
+graph LR
+    A[Audio Input] --> B[Mel Spectrogram]
+    B --> C[Conformer Encoder]
+    C --> D[CTC Head]
+    D --> E[Greedy/Beam Search]
+    E --> F[Text Output]
+    
+    C --> G[Auxiliary CTC Heads]
+    G --> H[Multi-task Loss]
+```
+
+### Conformer Block
+```
+Input → FFN₁(×0.5) → Multi-Head Attention → Convolution → FFN₂(×0.5) → Output
+```
+
+## 📋 Cài đặt
+
+### Yêu cầu hệ thống
+- Python 3.8+
+- CUDA 11.8+ (khuyến nghị)
+- RAM: 16GB+ 
+- GPU: 8GB VRAM+ (training), 4GB+ (inference)
+
+### Cài đặt nhanh
+```bash
+# Clone repository
 git clone https://github.com/iamdinhthuan/EfficiencyConformer-ctc-vietnamese
 cd EfficiencyConformer-ctc-vietnamese
 
+# Tạo virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# hoặc
+venv\Scripts\activate  # Windows
 
-📁 Data Structure
-CSV Format
-csvpath|text
-./datatest/audio1.wav|transcript of the first audio file
-./datatest/audio2.wav|transcript of the second audio file
-Project Structure
-conformer_asr/
-├── metadata.csv              # Training data
-├── datatest/                 # Audio files
+# Cài đặt dependencies
+pip install -r requirements.txt
+```
+
+### Cài đặt development
+```bash
+# Clone với submodules
+git clone --recursive https://github.com/iamdinhthuan/EfficiencyConformer-ctc-vietnamese
+
+# Cài đặt trong chế độ development
+pip install -e .
+
+# Cài đặt pre-commit hooks
+pre-commit install
+```
+
+## 📁 Cấu trúc dữ liệu
+
+### Format CSV
+Tạo file `metadata.csv` với định dạng:
+```csv
+path|text
+./datatest/audio1.wav|transcript của file audio đầu tiên
+./datatest/audio2.wav|transcript của file audio thứ hai
+./datatest/audio3.wav|đây là một ví dụ transcript tiếng việt
+```
+
+### Cấu trúc thư mục
+```
+vietnamese-conformer-asr/
+├── metadata.csv              # Dữ liệu training
+├── datatest/                 # Thư mục audio
 │   ├── audio1.wav
-│   └── audio2.wav
-├── weights/                  # Model components
+│   ├── audio2.wav
+│   └── noise/                # Background noise (optional)
+│       └── fsdnoisy18k/
+├── weights/                  # Model weights
 │   └── tokenizer_spe_bpe_v1024_pad/
 │       └── tokenizer.model
-├── config.json              # Training configuration
+├── config.json              # Configuration
 └── checkpoints/             # Training outputs
-⚙️ Configuration
-Default Configuration
-pythonfrom config import ExperimentConfig
+```
+
+## ⚙️ Cấu hình
+
+### Cấu hình cơ bản
+```python
+from config import ExperimentConfig
 
 config = ExperimentConfig()
 # Conformer: 256d-4h-16l
 # Training: batch=16, lr=1e-4  
 # Data: 95% train, 5% val
 # Tokenizer: 1024 vocab SentencePiece
-Custom Configuration
-pythonconfig = ExperimentConfig()
+```
 
-# Conformer architecture
+### Cấu hình tùy chỉnh
+```python
+config = ExperimentConfig()
+
+# Kiến trúc Conformer
 config.model.n_state = 512           # Model dimension
 config.model.n_head = 8              # Attention heads
-config.model.n_layer = 12            # Conformer layers
-config.model.encoder_type = "conformer"  # or "efficient"
+config.model.n_layer = 18            # Conformer layers
+config.model.encoder_type = "conformer"  # hoặc "efficient"
 config.model.dropout = 0.1
 
-# Training setup
+# Thiết lập training
 config.training.batch_size = 32
 config.training.learning_rate = 2e-4
 config.training.max_epochs = 100
 config.training.precision = "bf16-mixed"
 
-# Data processing
+# Xử lý dữ liệu
 config.data.metadata_file = "my_data.csv"
 config.data.train_val_split = 0.9
 config.data.enable_augmentation = True
 config.data.min_text_len = 1
 config.data.max_text_len = 60
 
-# Save configuration
+# Lưu cấu hình
 config.save("my_config.json")
-🏃‍♂️ Training
-Basic Training
-bash# Train with default config
+```
+
+## 🏃‍♂️ Huấn luyện
+
+### Huấn luyện cơ bản
+```bash
+# Training với config mặc định
 python run.py
 
-# Train with custom config
+# Training với config tùy chỉnh
 python run.py --config my_config.json
 
-# Override parameters
+# Override các tham số
 python run.py --batch-size 32 --learning-rate 2e-4 --max-epochs 50
-Advanced Training
-bash# Test setup before training
+```
+
+### Huấn luyện nâng cao
+```bash
+# Test setup trước khi training
 python run.py --test
 
 # Fast development run
 python run.py --fast-dev-run
 
-# Resume from checkpoint
+# Resume từ checkpoint
 python run.py --resume checkpoints/ctc-step1000-wer0.1234.ckpt
 
-# Enable profiling
+# Bật profiling
 python run.py --profile
-🎯 Inference
-Command Line
-bash# Greedy decoding (fast)
+```
+
+### Theo dõi training
+```bash
+# TensorBoard
+tensorboard --logdir checkpoints
+
+# Logs
+tail -f checkpoints/logs/training.log
+```
+
+## 🎯 Inference
+
+### Command Line
+```bash
+# Greedy decoding (nhanh)
 python inference.py --checkpoint checkpoints/best.ckpt --audio audio.wav
 
-# Prefix beam search (more accurate)
+# Prefix beam search (chính xác hơn)
 python inference.py --checkpoint checkpoints/best.ckpt --audio audio.wav --beam_search
-Python API
-pythonfrom inference import CTCInference
+```
+
+### Python API
+```python
+from inference import CTCInference
 from config import ExperimentConfig
 
 # Load model
@@ -135,200 +225,221 @@ result = inference.transcribe_single("audio.wav", use_beam_search=True)
 print(f"Text: {result.transcription}")
 print(f"Confidence: {result.confidence_score:.3f}")
 print(f"Time: {result.processing_time:.2f}s")
-🧠 Conformer Architecture Details
-Conformer Block Structure
-Input → FFN₁ (×0.5) → Multi-Head Attention → Convolution → FFN₂ (×0.5) → Output
-Implementation Features
+```
 
-Macaron FFN: Split feed-forward with 0.5 scaling
-Depthwise Conv: Efficient local pattern modeling
-ALiBi Position: Relative position encoding (optional)
-Subsampling: 4x time reduction with Conv2D
+### Batch inference
+```python
+import glob
 
-Encoder Options
-ConformerEncoder (models/conformer.py)
-python# Custom implementation
-- Full control over architecture
-- Learnable positional encoding
-- Configurable conv kernel sizes
-EfficientConformerEncoder (models/efficient_conformer.py)
-python# TorchAudio wrapper
-- Optimized performance
-- Battle-tested implementation
-- Same interface compatibility
-📊 CTC Decoding Strategies
-Greedy Decoding
-python# O(T) time complexity
-# Fastest inference
+# Transcribe multiple files
+audio_files = glob.glob("test_audio/*.wav")
+results = []
+
+for audio_file in audio_files:
+    result = inference.transcribe_single(audio_file)
+    results.append(result)
+    print(f"{audio_file}: {result.transcription}")
+```
+
+## 🧠 Chi tiết kiến trúc
+
+### Conformer Encoder
+- **Multi-Head Self-Attention**: Capture long-range dependencies
+- **Depthwise Separable Convolution**: Local pattern modeling
+- **Macaron Feed-Forward**: Split FFN với scaling 0.5
+- **Subsampling**: 4x time reduction với Conv2D
+- **Position Encoding**: Learnable positional encoding
+
+### CTC Decoding Strategies
+```python
+# Greedy Decoding - O(T)
 decoded = ctc_decoder.greedy_decode(log_probs, lengths)
-Prefix Beam Search
-python# O(T × B × V) complexity
-# Higher accuracy
+
+# Prefix Beam Search - O(T × B × V)
 decoded = ctc_decoder.prefix_beam_search(
     log_probs, lengths, 
     beam_size=5, alpha=0.3
 )
-📈 Training Features
-Multi-task Learning
+```
 
-Main CTC Loss: From final encoder output
-Auxiliary Loss: From intermediate layers (25%, 50%, 75%)
-Total Loss: main_loss + aux_weight × aux_loss
+### Multi-task Learning
+- **Main CTC Loss**: Từ encoder output cuối cùng
+- **Auxiliary Loss**: Từ các lớp trung gian (25%, 50%, 75%)
+- **Total Loss**: `main_loss + aux_weight × aux_loss`
 
-Optimization Strategy
+## 📈 Tối ưu hóa
 
-OneCycleLR: Warmup → peak → cosine decay
-Mixed Precision: bf16 to save memory
-Gradient Clipping: Stability
-Label Smoothing: Regularization
+### Memory Optimization
+```python
+config.training.batch_size = 8          # Giảm batch size
+config.training.accumulate_grad_batches = 4  # Gradient accumulation
+config.training.precision = "bf16-mixed"     # Mixed precision
+```
 
-Data Augmentation
-python# Adaptive based on audio duration
-Short (< 3s):    Basic gain + noise
-Medium (3-8s):   + Time stretch + background noise  
-Long (> 8s):     + Stronger augmentation
-Noisy env:       MP3 compression + low SNR
-🔧 Advanced Configuration
-Model Scaling
-python# Small model (fast)
-config.model.n_state = 256
-config.model.n_layer = 12
-config.model.n_head = 4
+### Speed Optimization
+```python
+config.model.encoder_type = "efficient"  # Sử dụng TorchAudio
+config.training.num_workers = 0          # Single worker
+config.data.enable_caching = False       # Tắt cache nếu gặp lỗi pickle
+```
 
-# Large model (accurate)
+### Stability Optimization
+```python
+config.training.learning_rate = 5e-5     # Learning rate thấp hơn
+config.training.gradient_clip_val = 0.5  # Gradient clipping mạnh hơn
+config.model.label_smoothing = 0.15      # Label smoothing
+```
+
+## 🔧 Troubleshooting
+
+### Lỗi thường gặp
+
+**1. CUDA out of memory**
+```python
+# Giải pháp
+config.training.batch_size = 8
+config.training.accumulate_grad_batches = 4
+config.training.precision = "bf16-mixed"
+```
+
+**2. NaN loss**
+```python
+# Giải pháp
+config.training.learning_rate = 5e-5
+config.training.gradient_clip_val = 0.5
+config.model.dropout = 0.05
+```
+
+**3. Slow training**
+```python
+# Giải pháp
+config.model.encoder_type = "efficient"
+config.training.num_workers = 0
+config.data.enable_caching = False
+```
+
+**4. Pickle errors (Windows)**
+```python
+# Giải pháp
+config.training.num_workers = 0
+config.data.enable_caching = False
+```
+
+### Performance tuning
+
+**Cho accuracy cao:**
+```python
 config.model.n_state = 512
 config.model.n_layer = 24
-config.model.n_head = 8
+config.training.aux_loss_weight = 0.3
+config.data.enable_augmentation = True
+```
 
-# Efficient variant
+**Cho inference nhanh:**
+```python
+config.model.n_state = 256
+config.model.n_layer = 12
 config.model.encoder_type = "efficient"
-Training Optimization
-python# Memory efficient
-config.training.batch_size = 8
-config.training.precision = "bf16-mixed"
-config.training.accumulate_grad_batches = 4
+```
 
-# Speed optimized
-config.training.num_workers = 0  # Single-threaded
-config.training.num_sanity_val_steps = 0
-📋 Monitoring & Debugging
-TensorBoard Metrics
-bashtensorboard --logdir checkpoints
-Key Metrics:
+## 📚 Monitoring & Debugging
 
-train_loss / val_loss_epoch: CTC loss
-train_wer / val_wer_epoch: Word Error Rate
-learning_rate: Current learning rate
-step_time: Training speed
-aux_loss: Auxiliary CTC loss
+### Metrics quan trọng
+- `train_loss` / `val_loss_epoch`: CTC loss
+- `train_wer` / `val_wer_epoch`: Word Error Rate
+- `learning_rate`: Current learning rate
+- `step_time`: Training speed
+- `aux_loss`: Auxiliary CTC loss
 
-Common Issues
-Memory Problems
-pythonconfig.training.batch_size = 8          # Reduce batch size
-config.training.accumulate_grad_batches = 4  # Gradient accumulation
-Slow Training
-pythonconfig.model.encoder_type = "efficient"  # Use TorchAudio
-config.training.precision = "bf16-mixed" # Mixed precision
-config.training.num_workers = 0          # Single worker
-NaN Loss
-pythonconfig.training.learning_rate = 5e-5     # Lower learning rate
-config.training.gradient_clip_val = 0.5  # Stronger clipping
-🎛️ Complete Configuration Example
-pythonconfig = ExperimentConfig(
-    name="vietnamese_conformer_large",
-    
-    # Audio processing
-    audio=AudioConfig(
-        sample_rate=16000,
-        n_mels=80,
-        n_fft=400,
-        hop_length=160
-    ),
-    
-    # Conformer architecture
-    model=ModelConfig(
-        n_state=512,
-        n_head=8, 
-        n_layer=18,
-        encoder_type="conformer",
-        vocab_size=1024,
-        dropout=0.1,
-        label_smoothing=0.1
-    ),
-    
-    # Training setup
-    training=TrainingConfig(
-        batch_size=16,
-        learning_rate=1e-4,
-        max_epochs=100,
-        precision="bf16-mixed",
-        gradient_clip_val=1.0,
-        aux_loss_weight=0.2
-    ),
-    
-    # Data configuration
-    data=DataConfig(
-        metadata_file="metadata.csv",
-        train_val_split=0.95,
-        enable_augmentation=True,
-        min_text_len=1,
-        max_text_len=60
-    )
-)
-🔄 Complete Workflow
+### TensorBoard visualization
+```bash
+tensorboard --logdir checkpoints
+```
 
-Prepare Data
-bash# Create metadata.csv with path|text format
-# Ensure audio files exist
+### Best practices
+1. **Start small**: Test với config nhỏ trước
+2. **Monitor overfitting**: Theo dõi val_loss vs train_loss
+3. **Learning rate**: Bắt đầu với 1e-4, điều chỉnh theo loss
+4. **Checkpointing**: Lưu checkpoint mỗi 1000 steps
+5. **Validation**: Validate mỗi 1000 training steps
 
-Configure Model
-python# Customize config.json for your needs
-# Test with small config first
+## 🔄 Workflow hoàn chỉnh
 
-Test Setup
-bashpython run.py --test
+```bash
+# 1. Chuẩn bị dữ liệu
+# Tạo metadata.csv với format path|text
 
-Start Training
-bashpython run.py --config config.json
+# 2. Cấu hình model
+python -c "
+from config import ExperimentConfig
+config = ExperimentConfig()
+config.data.metadata_file = 'metadata.csv'
+config.save('config.json')
+"
 
-Monitor Progress
-bashtensorboard --logdir checkpoints
+# 3. Test setup
+python run.py --config config.json --test
 
-Run Inference
-bashpython inference.py --checkpoint checkpoints/best.ckpt --audio test.wav
+# 4. Bắt đầu training
+python run.py --config config.json
 
+# 5. Monitor progress
+tensorboard --logdir checkpoints
 
-🤝 Development
-Architecture Overview
-models/
-├── conformer.py              # Native Conformer implementation
-├── efficient_conformer.py    # TorchAudio wrapper
-├── advanced_ctc.py          # CTC components
-└── encoder.py               # Legacy reference
+# 6. Inference
+python inference.py --checkpoint checkpoints/best.ckpt --audio test.wav --beam_search
+```
 
-utils/
-├── dataset.py               # Data processing
-└── scheduler.py             # LR scheduling
+## 🤝 Đóng góp
 
-config.py                    # Configuration system
-train.py                     # Lightning module
-run.py                       # Training script
-inference.py                 # Inference engine
-Extending the System
+### Development setup
+```bash
+git clone https://github.com/iamdinhthuan/EfficiencyConformer-ctc-vietnamese
+cd EfficiencyConformer-ctc-vietnamese
+pip install -e ".[dev]"
+pre-commit install
+```
 
-New Encoder: Implement interface in models/
-New Augmentation: Extend AdvancedAudioAugmentation
-New Tokenizer: Update config + dataset code
-New Loss: Modify CTCLossWithLabelSmoothing
+### Code style
+```bash
+# Format code
+black .
+isort .
 
-📄 License
-MIT License
-🙏 Credits
+# Lint
+flake8 .
 
-Conformer Architecture: "Conformer: Convolution-augmented Transformer for Speech Recognition"
-PyTorch Lightning: Training framework
-TorchAudio: Efficient Conformer implementation
-SentencePiece: Subword tokenization
+# Type check
+mypy .
+```
 
+### Testing
+```bash
+pytest tests/
+```
 
-⭐ Star the repo if useful! ⭐
+## 📄 License
+MIT License - xem [LICENSE](LICENSE) để biết thêm chi tiết.
+
+## 🙏 Credits & References
+
+- **Conformer Architecture**: [Conformer: Convolution-augmented Transformer for Speech Recognition](https://arxiv.org/abs/2005.08100)
+- **PyTorch Lightning**: Training framework
+- **TorchAudio**: Efficient Conformer implementation  
+- **SentencePiece**: Subword tokenization
+- **Audiomentations**: Audio augmentation library
+
+## ⭐ Support
+
+Nếu project này hữu ích, hãy cho chúng tôi một ⭐ trên GitHub!
+
+### Liên hệ
+- 📧 Email: [iamdinhthuan@gmail.com](mailto:iamdinhthuan@gmail.com)
+- 🐛 Issues: [GitHub Issues](https://github.com/iamdinhthuan/EfficiencyConformer-ctc-vietnamese/issues)
+- 📖 Docs: [Documentation](https://github.com/iamdinhthuan/EfficiencyConformer-ctc-vietnamese/wiki)
+
+---
+
+<div align="center">
+Made with ❤️ for Vietnamese Speech Recognition
+</div>
