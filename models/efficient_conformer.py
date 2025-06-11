@@ -80,8 +80,15 @@ class EfficientConformerEncoder(nn.Module):
             >= lengths.unsqueeze(1)
         )
 
+    @staticmethod
+    def _conv_out_length(length: Tensor, kernel: int = 3, stride: int = 2, padding: int = 1, dilation: int = 1) -> Tensor:
+        """Replicate PyTorch Conv output length formula with floor division."""
+        return ((length + 2 * padding - dilation * (kernel - 1) - 1) // stride) + 1
+
     def get_length_after_subsample(self, x_len: Tensor) -> Tensor:
-        return ((x_len - 1) // 2 - 1) // 2 + 1
+        len_after = self._conv_out_length(x_len)
+        len_after = self._conv_out_length(len_after)
+        return len_after
 
     def forward(
         self,
@@ -106,10 +113,10 @@ class EfficientConformerEncoder(nn.Module):
         # add pos enc
         x = x + self.pos_encoding[:, : x.size(1), :]
 
-        # lengths
+        # lengths after subsample
         new_len = self.get_length_after_subsample(x_len)
 
-        # Build mask
+        # Build padding mask that matches seq_len for manual layer iteration
         seq_len = x.size(1)
         padding_mask = (
             torch.arange(seq_len, device=new_len.device).expand(x.size(0), seq_len) >= new_len.unsqueeze(1)
