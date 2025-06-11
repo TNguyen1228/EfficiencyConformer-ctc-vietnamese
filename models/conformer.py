@@ -58,15 +58,17 @@ class _DepthwiseConvModule(nn.Module):
         super().__init__()
         assert kernel_size % 2 == 1, "kernel_size must be odd"
         self.pointwise_conv1 = nn.Conv1d(d_model, 2 * d_model, kernel_size=1)
+
+        # After GLU activation, channel dimension returns to d_model
         self.depthwise_conv = nn.Conv1d(
-            2 * d_model,
-            2 * d_model,
+            d_model,
+            d_model,
             kernel_size=kernel_size,
-            groups=2 * d_model,
+            groups=d_model,
             padding=(kernel_size - 1) // 2,
         )
-        self.batch_norm = nn.BatchNorm1d(2 * d_model)
-        self.pointwise_conv2 = nn.Conv1d(2 * d_model, d_model, kernel_size=1)
+        self.batch_norm = nn.BatchNorm1d(d_model)
+        self.pointwise_conv2 = nn.Conv1d(d_model, d_model, kernel_size=1)
         self.dropout = nn.Dropout(dropout)
         self.act = nn.GLU(dim=1)
 
