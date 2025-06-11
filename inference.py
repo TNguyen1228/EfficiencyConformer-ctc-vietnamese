@@ -16,7 +16,27 @@ from tqdm import tqdm
 # Import model components
 from models.encoder import AudioEncoder
 from models.advanced_ctc import AdvancedCTCHead, AdvancedCTCDecoder
-from config import ExperimentConfig, get_config
+from config import (
+    ExperimentConfig, 
+    AudioConfig,
+    ModelConfig,
+    TrainingConfig,
+    DataConfig,
+    InferenceConfig,
+    PathConfig,
+    get_config
+)
+
+# Add safe globals for checkpoint loading
+torch.serialization.add_safe_globals([
+    ExperimentConfig,
+    AudioConfig,
+    ModelConfig,
+    TrainingConfig,
+    DataConfig,
+    InferenceConfig,
+    PathConfig
+])
 
 
 @dataclass
@@ -65,14 +85,15 @@ class CTCInference:
             att_context_size=self.config.model.attention_context_size
         )
         
+        # Use vocab_size directly from config (it already includes the blank token)
         self.ctc_head = AdvancedCTCHead(
             input_dim=self.config.model.n_state,
-            vocab_size=self.config.model.vocab_size,
+            vocab_size=self.config.model.vocab_size,  # Already includes blank token
             dropout=0.0  # No dropout during inference
         )
         
-        # Load checkpoint
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        # Load checkpoint with weights_only=True for security
+        checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=True)
         
         # Handle different checkpoint formats
         state_dict = checkpoint.get('state_dict', checkpoint)
@@ -179,12 +200,30 @@ def main():
     parser.add_argument("--audio", type=str, required=True, help="Path to audio file")
     parser.add_argument("--beam_search", action="store_true", help="Use beam search")
     parser.add_argument("--device", type=str, help="Device (cuda/cpu)")
-    parser.add_argument("--config", type=str, help="Path to config file")
+    parser.add_argument("--config", type=str, help="Path to config file (optional)")
     
     args = parser.parse_args()
     
-    # Load config
-    config = get_config(args.config)
+    # Resolve configuration: explicit path -> alongside checkpoint -> default
+    from pathlib import Path
+    config: ExperimentConfig
+
+    if args.config:
+        # User-specified config file
+        config = ExperimentConfig.load(args.config)
+        logger.info(f"📝 Loaded config from {args.config}")
+    else:
+        # Try to find config.json next to checkpoint
+        ckpt_dir = Path(args.checkpoint).expanduser().resolve().parent
+        candidate = ckpt_dir / "config.json"
+        if candidate.exists():
+            config = ExperimentConfig.load(str(candidate))
+            logger.info(f"📝 Loaded config from {candidate}")
+        else:
+            config = get_config()
+            logger.warning("⚠️ Config file not provided and none found next to checkpoint. Using default config – ensure compatibility!")
+
+    logger.info(f"📊 Model vocab size: {config.model.vocab_size}")
     
     # Initialize inference
     inference = CTCInference(args.checkpoint, config, args.device)

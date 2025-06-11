@@ -64,6 +64,10 @@ class TrainingConfig:
     precision: str = "bf16-mixed"
     enable_progress_bar: bool = True
 
+    # Checkpointing
+    checkpoint_every_n_steps: int = 1000  # save checkpoints every N training steps
+    save_epoch_checkpoint: bool = False   # additionally save checkpoint each epoch end
+
 
 @dataclass
 class DataConfig:

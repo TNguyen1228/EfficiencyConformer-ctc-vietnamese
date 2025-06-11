@@ -280,11 +280,14 @@ class StreamingCTC(pl.LightningModule):
     
     @rank_zero_only
     def on_train_epoch_end(self):
-        """Save checkpoint at epoch end"""
+        """Optionally save checkpoint at epoch end if enabled in config"""
+        if not self.config.training.save_epoch_checkpoint:
+            return  # Skip epoch checkpoints to save disk space
+
         if hasattr(self.trainer, 'checkpoint_callback'):
-            checkpoint_path = f"{self.config.paths.log_dir}/ctc_epoch_{self.current_epoch}.ckpt"
+            checkpoint_path = f"{self.config.paths.checkpoint_dir}/ctc_epoch_{self.current_epoch}.ckpt"
             self.trainer.save_checkpoint(checkpoint_path)
-            logger.info(f"💾 Checkpoint saved: {checkpoint_path}")
+            logger.info(f"💾 Epoch checkpoint saved: {checkpoint_path}")
 
 
 def create_advanced_callbacks(config):
@@ -294,12 +297,14 @@ def create_advanced_callbacks(config):
     # Model checkpointing
     checkpoint_callback = ModelCheckpoint(
         monitor='val_wer_epoch',
-        dirpath=config.paths.log_dir,
-        filename='ctc-{epoch:02d}-{val_wer_epoch:.3f}',
-        save_top_k=3,
+        dirpath=config.paths.checkpoint_dir,
+        filename='ctc-step{step}-wer{val_wer_epoch:.4f}',
+        save_top_k=1,            # keep only the best model (lowest WER)
         mode='min',
         save_weights_only=False,
-        save_last=True
+        every_n_train_steps=config.training.checkpoint_every_n_steps,
+        save_on_train_epoch_end=False,   # rely on step-based saving only
+        save_last=False
     )
     callbacks.append(checkpoint_callback)
     
@@ -326,6 +331,15 @@ def main(config=None):
     
     # Load config
     config = config or get_config()
+    
+    # Persist the exact config used for this run
+    from pathlib import Path
+    config_path = Path(config.paths.checkpoint_dir) / "config.json"
+    try:
+        config.save(str(config_path))
+        logger.info(f"📝 Experiment config saved to {config_path}")
+    except Exception as e:
+        logger.warning(f"⚠️ Could not save config to {config_path}: {e}")
     
     # Set up logging
     logger.info("🚀 Starting CTC training...")

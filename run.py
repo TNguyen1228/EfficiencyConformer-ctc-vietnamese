@@ -67,8 +67,8 @@ def create_data_loaders(config: ExperimentConfig):
         train_dataset,
         batch_size=config.training.batch_size,
         shuffle=True,
-        num_workers=num_workers,
-        persistent_workers=False,  # Disable for single-threaded
+        num_workers=16,
+        persistent_workers=True,  # Disable for single-threaded
         collate_fn=collate_fn,
         pin_memory=True,
         drop_last=True  # For stable training
@@ -78,8 +78,8 @@ def create_data_loaders(config: ExperimentConfig):
         val_dataset,
         batch_size=config.training.batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        persistent_workers=False,  # Disable for single-threaded
+        num_workers=16,
+        persistent_workers=True,  # Disable for single-threaded
         collate_fn=collate_fn,
         pin_memory=True
     )
@@ -180,6 +180,14 @@ def main():
     
     # Setup logging
     setup_logging(config.paths.log_dir)
+    
+    # Persist the exact config for this run
+    config_path = Path(config.paths.checkpoint_dir) / "config.json"
+    try:
+        config.save(str(config_path))
+        logger.info(f"📝 Experiment config saved to {config_path}")
+    except Exception as e:
+        logger.warning(f"⚠️ Could not save config to {config_path}: {e}")
     
     # Log configuration
     logger.info("📋 Configuration:")
