@@ -14,7 +14,7 @@
     "n_layer": 16,
     "attention_context_size": [40, 2],
     "vocab_size": 14500,
-    "tokenizer_model_path": "./weights/bartpho_syllable/tokenizer.model",
+    "tokenizer_model_path": "/kaggle/working/EfficiencyConformer-ctc-vietnamese/weights/bartpho_syllable/tokenizer.model",
     "ctc_blank": 14500,
     "rnnt_blank": 14500,
     "pad": 1,
