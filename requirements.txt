@@ -1,10 +1,10 @@
 # Core ML frameworks
 torch==2.6.0
 torchaudio==2.6.0
-pytorch_lightning==2.5.1
+pytorch_lightning==2.5.2
 
 # Audio processing
-librosa==0.10.1
+librosa==0.11.0
 audiomentations>=0.40.0
 soundfile>=0.12.0
 
@@ -21,14 +21,14 @@ wandb==0.20.1
 
 # Scientific computing
 numpy==1.26.4
-scipy==1.11.4
+scipy==1.15.3
 
 # Progress bars and utilities
 tqdm>=4.66.4
 omegaconf==2.3.0
 
 # Data handling
-datasets==2.14.5
+datasets==3.6.
 pandas==2.2.2
 
 # Development tools
