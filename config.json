@@ -46,12 +46,12 @@
     "enable_progress_bar": true
   },
   "data": {
-    "metadata_file": "metadata.csv",
+    "metadata_file": "/kaggle/input/vietbud500/datasetbud/train.csv",
     "train_val_split": 0.95,
     "bg_noise_path": ["./datatest/noise/fsdnoisy18k"],
     "min_text_len": 1,
     "max_text_len": 60,
-    "enable_augmentation": true,
+    "enable_augmentation": false,
     "augmentation_prob": 0.9,
     "noise_snr_range": [0.5, 4.0],
     "gain_range": [-30.0, 15.0],
