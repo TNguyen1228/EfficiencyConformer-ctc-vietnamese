@@ -69,13 +69,13 @@
   },
   "paths": {
     "pretrained_encoder_weight": "./weights/phowhisper_small_encoder.pt",
-    "tokenizer_model_path": "./weights/bartpho_syllable/tokenizer.model",
-    "log_dir": "./checkpoints",
-    "checkpoint_dir": "./checkpoints",
-    "tensorboard_dir": "./logs/tensorboard",
+    "tokenizer_model_path": "/kaggle/working/EfficiencyConformer-ctc-vietnamese/weights/bartpho_syllable/tokenizer.model",
+    "log_dir": "/kaggle/working/EfficiencyConformer-ctc-vietnamese/checkpoints",
+    "checkpoint_dir": "/kaggle/working/EfficiencyConformer-ctc-vietnamese/checkpoints",
+    "tensorboard_dir": "/kaggle/working/EfficiencyConformer-ctc-vietnamese/logs/tensorboard",
     "wandb_project": null,
     "dataset_dir": "./dataset",
-    "weights_dir": "./weights"
+    "weights_dir": "/kaggle/working/EfficiencyConformer-ctc-vietnamese/weights"
   },
   "device": "auto",
   "mixed_precision": true,
