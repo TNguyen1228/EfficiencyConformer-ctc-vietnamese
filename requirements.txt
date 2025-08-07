@@ -17,7 +17,7 @@ jiwer==3.1.0
 # Logging and monitoring
 loguru==0.7.3
 tensorboard==2.19.0
-wandb==0.16.6
+wandb==0.20.1
 
 # Scientific computing
 numpy==1.26.4
