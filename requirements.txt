@@ -15,9 +15,9 @@ sentencepiece
 jiwer
 
 # Logging and monitoring
-loguru=0.7.3
-tensorboard=2.19.0
-wandb=0.16.0
+loguru
+tensorboard
+wandb
 
 # Scientific computing
 numpy
