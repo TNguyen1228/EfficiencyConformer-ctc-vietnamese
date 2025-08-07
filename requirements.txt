@@ -4,44 +4,44 @@ torchaudio==2.6.0
 pytorch_lightning==2.5.1
 
 # Audio processing
-librosa>=0.10.0
+librosa==0.10.1
 audiomentations>=0.40.0
 soundfile>=0.12.0
 
 # Tokenization and NLP
-sentencepiece>=0.2.0
+sentencepiece==0.2.0
 
 # Metrics and evaluation
-jiwer>=3.1.0
+jiwer==3.1.0
 
 # Logging and monitoring
-loguru>=0.7.3
-tensorboard>=2.19.0
-wandb>=0.16.0
+loguru==0.7.3
+tensorboard==2.19.1
+wandb==0.16.6
 
 # Scientific computing
-numpy>=1.24.0
-scipy>=1.10.0
+numpy==1.26.4
+scipy==1.11.4
 
 # Progress bars and utilities
-tqdm>=4.65.0
-omegaconf>=2.3.0
+tqdm>=4.66.4
+omegaconf==2.3.0
 
 # Data handling
-datasets>=2.14.0
-pandas>=2.0.0
+datasets==2.14.5
+pandas==2.2.2
 
 # Development tools
 pytest==7.4.0
-black>=23.0.0
-isort>=5.12.0
-flake8>=6.0.0
+black==23.9.1
+isort==5.13.2
+flake8==6.1.0
 
 # Performance optimization
-numba>=0.58.0
-warprnnt-numba>=0.4.1
+numba==0.58.1
+warprnnt-numba==0.4.1
 
 # Optional: for advanced features
-transformers>=4.30.0  # For BartPho tokenizer extraction
-onnxruntime>=1.15.0   # For model optimization
-triton>=2.0.0         # For custom kernels 
+transformers>=4.38.2  # For BartPho tokenizer extraction
+onnxruntime==1.17.3   # For model optimization
+# triton>=2.0.0         # For custom kernels 
